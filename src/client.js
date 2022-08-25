@@ -4,6 +4,7 @@ import { timestamp } from "./helpers.js";
 import ansiEscapes from "ansi-escapes";
 import fs from "fs";
 import Chance from "chance";
+import { createSpinner } from "nanospinner";
 const chance = Chance();
 
 const configPath = "./config.json";
@@ -90,7 +91,7 @@ function loadConfig() {
     } catch (err) {
       console.log(err);
     }
-    return;
+    return "config loaded!";
   }
   // config doesn't exist, load default
   config = {
@@ -109,17 +110,26 @@ function loadConfig() {
   };
   try {
     fs.writeFileSync(configPath, JSON.stringify(config));
+    return "created new config!";
   } catch (err) {
     console.log(err);
+    return false;
   }
 }
 
 if (process.argv[2] === "start") {
-  // load config
-  // spinner here
-  loadConfig();
-  console.log("finished loading config");
-  socket.on("connect", () => start());
+  const configSpinner = createSpinner("loading config...").start();
+  const result = loadConfig();
+  if (!result) {
+    configSpinner.error({ text: "failed to load config. try deleting your config.json." });
+    process.exit(1);
+  }
+  configSpinner.success({ text: result });
+  const serverSpinner = createSpinner("waiting for server...").start();
+  socket.on("connect", () => {
+    serverSpinner.success({ text: "connected to server!" });
+    start();
+  });
 }
 
 export const clientStart = start;
