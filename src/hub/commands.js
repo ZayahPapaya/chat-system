@@ -1,4 +1,4 @@
-import { chatToId, emitToId } from "./emit.js";
+import { chatToId, chatToOthers, emitToId } from "./emit.js";
 
 class Command {
   // this is fine to do as long as the base Command type isn't added to the AllCommands list
@@ -46,8 +46,10 @@ class NickCommand extends Command {
       chatToId(messageData.id, "Max name length is 20.");
       return;
     }
+    const oldName = messageData.username;
     emitToId(messageData.id, "updateName", newName);
     chatToId(messageData.id, `Set name as ${newName}.`);
+    chatToOthers(messageData.id, `${oldName} is now known as ${newName}`);
   }
 }
 
