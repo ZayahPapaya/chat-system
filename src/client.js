@@ -39,6 +39,11 @@ function onHubMessage(message, secondTry, messageHistory) {
   console.log(message);
 }
 
+function onUpdateName(newName) {
+  config.username = newName;
+  saveConfig();
+}
+
 function render(messageHistory) {
   //clear old
   process.stdout.write(ansiEscapes.clearTerminal);
@@ -50,6 +55,7 @@ function render(messageHistory) {
 async function start() {
   // hooking signals
   socket.on("hubMessage", onHubMessage);
+  socket.on("updateName", onUpdateName);
 
   // inquirer loop
   while (true) {
@@ -74,11 +80,12 @@ async function start() {
       continue;
     }
     const userMessage = {
+      id: socket.id,
       name: config.username,
       content: response["content"],
       timestamp: timestamp(),
     };
-    socket.emit("clientMessage", socket.id, userMessage);
+    socket.emit("clientMessage", userMessage);
   }
 }
 
@@ -107,6 +114,10 @@ function loadConfig() {
     //- admin stuff ^ stretch of above
     //- who command
   };
+  saveConfig();
+}
+
+function saveConfig() {
   try {
     fs.writeFileSync(configPath, JSON.stringify(config));
   } catch (err) {
@@ -115,7 +126,6 @@ function loadConfig() {
 }
 
 if (process.argv[2] === "start") {
-  // load config
   // spinner here
   loadConfig();
   console.log("finished loading config");
