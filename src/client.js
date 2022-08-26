@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import inquirer from "inquirer";
-import { timestamp } from "./helpers.js";
+import { timestamp, parseMessage } from "./helpers.js";
 import ansiEscapes from "ansi-escapes";
 import fs from "fs";
 import Chance from "chance";
@@ -14,6 +14,8 @@ const socket = io("ws://localhost:3500");
 
 let promiseReject = null;
 const InputPrompt = inquirer.prompt.prompts["input"];
+let priorityMessage;
+let mostRecentHistory = [];
 
 export class RejectablePrompt extends InputPrompt {
   run(callback) {
@@ -35,9 +37,11 @@ function onHubMessage(message, secondTry, messageHistory) {
     });
     return;
   }
-
-  render(messageHistory);
-  console.log(message);
+  if (message) {
+    priorityMessage = message;
+  }
+  mostRecentHistory = messageHistory;
+  render();
 }
 
 function onUpdateName(newName) {
@@ -46,12 +50,14 @@ function onUpdateName(newName) {
   saveConfig();
 }
 
-function render(messageHistory) {
+function render() {
   //clear old
   process.stdout.write(ansiEscapes.clearTerminal);
   //repost message history
-  // console.log(messageHistory.join("\n"));
-  messageHistory.forEach((message) => console.log(message));
+  mostRecentHistory.forEach((message) => console.log(message));
+  if (priorityMessage) {
+    console.log(priorityMessage);
+  }
 }
 
 function sendUsername() {
@@ -93,6 +99,26 @@ async function start() {
       timestamp: timestamp(),
     };
     socket.emit("clientMessage", userMessage);
+    priorityMessage = null;
+    mostRecentHistory.push(parseMessage(userMessage));
+    render();
+    let shouldRestart = false;
+    await new Promise((resolve, reject) => {
+      if (socket.disconnected) {
+        reject("server died");
+      }
+      socket.once("messageReceived", () => {
+        resolve();
+      });
+    }).then(
+      (_) => {},
+      (_) => (shouldRestart = true)
+    );
+    if (shouldRestart) {
+      console.log("Lost connection to server, trying to reconnect...");
+      prestart();
+      return;
+    }
   }
 }
 
@@ -121,7 +147,7 @@ function loadConfig() {
     //- admin stuff ^ stretch of above
     //- who command
   };
-  saveConfig();
+  return saveConfig();
 }
 
 function saveConfig() {
@@ -134,7 +160,10 @@ function saveConfig() {
   }
 }
 
-if (process.argv[2] === "start") {
+function prestart() {
+  if (process.argv[2] !== "start") {
+    return;
+  }
   const configSpinner = createSpinner("loading config...").start();
   const result = loadConfig();
   if (!result) {
@@ -148,5 +177,7 @@ if (process.argv[2] === "start") {
     start();
   });
 }
+
+prestart();
 
 export const clientStart = start;
