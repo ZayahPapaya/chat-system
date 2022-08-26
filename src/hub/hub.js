@@ -1,7 +1,6 @@
 import { Server } from "socket.io";
 import { chatToOthers, emitToId, emitToOthers, cullClients } from "./emit.js";
 import { allCommands } from "./commands.js";
-import { parseMessage } from "../helpers.js";
 const io = new Server();
 import dotenv from "dotenv";
 dotenv.config();
@@ -46,6 +45,11 @@ function onClientMessage(messageObj) {
   emitToOthers(messageObj.id, "hubMessage", null, false, messageHistory.history);
 }
 
+function parseMessage(messageObj) {
+  const { name, content, timestamp } = messageObj;
+  return `${name} at ${timestamp}: ${content}`;
+}
+
 function commandCheck(messageObj) {
   if (messageObj.content[0] !== "/") {
     return false;
@@ -86,8 +90,13 @@ function gatherUsername(messageObj) {
   client.username = messageObj.username;
 }
 
+function onClientHistory(id) {
+  emitToId(id, "hubHistory", messageHistory.history);
+}
+
 function start() {
   io.on("connection", (client) => {
+    client.on("clientHistory", onClientHistory);
     client.on("clientUsername", gatherUsername);
     client.emit("gatherUsername");
     allClients.push(client);

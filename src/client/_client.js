@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import inquirer from "inquirer";
-import { timestamp, parseMessage } from "./helpers.js";
+import { timestamp } from "./client_helpers.js";
 import ansiEscapes from "ansi-escapes";
 import fs from "fs";
 import Chance from "chance";
@@ -175,8 +175,18 @@ function prestart() {
   }
   configSpinner.success({ text: result });
   const serverSpinner = createSpinner("waiting for server...").start();
-  socket.once("connect", () => {
+  socket.once("connect", async () => {
     serverSpinner.success({ text: "connected to server!" });
+    const historySpinner = createSpinner("fetching chat history...").start();
+    await new Promise((resolve) => {
+      socket.once("hubHistory", (history) => {
+        //you won't see text after render so no point in putting text in
+        historySpinner.success();
+        render(history);
+        resolve();
+      });
+      socket.emit("clientHistory", socket.id);
+    });
     start();
   });
 }
