@@ -172,7 +172,7 @@ function prestart() {
   }
   configSpinner.success({ text: result });
   const serverSpinner = createSpinner("waiting for server...").start();
-  console.log(process.env.SERVER)
+  //console.log(process.env.SERVER)
   socket.on("connect", () => {
     serverSpinner.success({ text: "connected to server!" });
     start();
