@@ -10,7 +10,7 @@ const chance = Chance();
 const configPath = "./config.json";
 let config = {};
 
-const socket = io(`${process.env.SERVER}`|| 'ws://localhost:3500');
+const socket = io('https://pog-chat.herokuapp.com/');
 
 let promiseReject = null;
 const InputPrompt = inquirer.prompt.prompts["input"];
@@ -172,6 +172,7 @@ function prestart() {
   }
   configSpinner.success({ text: result });
   const serverSpinner = createSpinner("waiting for server...").start();
+  console.log(process.env.SERVER)
   socket.on("connect", () => {
     serverSpinner.success({ text: "connected to server!" });
     start();

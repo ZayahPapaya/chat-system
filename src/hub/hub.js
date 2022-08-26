@@ -3,7 +3,9 @@ import { chatToOthers, emitToId, emitToOthers } from "./emit.js";
 import { allCommands } from "./commands.js";
 import { parseMessage } from "../helpers.js";
 const io = new Server();
-io.listen(process.env.PORT || 3001);
+import dotenv from 'dotenv'
+dotenv.config()
+io.listen(process.env.PORT || 3500);
 
 /// tracks all of the connected clients
 const allClients = [];
