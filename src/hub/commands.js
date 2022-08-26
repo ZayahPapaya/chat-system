@@ -1,4 +1,4 @@
-import { chatToId, chatToOthers, emitToId } from "./emit.js";
+import { chatToId, chatToOthers, emitToId, cullClients } from "./emit.js";
 import { hubData } from './hub.js';
 
 class Command {
@@ -59,6 +59,7 @@ class WhoCommand extends Command {
   desc = "Lists all the connected users.";
 
   commandEffect(messageData, ...args) {
+    cullClients();
     const userList = hubData.clients;
     const built = [];
     built.push("-- All Users --");
