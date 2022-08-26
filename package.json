@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node ./src/hub/hub.js start",
-    "client": "node ./src/client.js start",
-    "lc": "node ./src/client.js start local",
+    "client": "node ./src/client/_client.js start",
+    "lc": "node ./src/client/_client.js start local",
     "test": "jest test"
   },
   "repository": {
