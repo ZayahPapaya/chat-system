@@ -41,6 +41,7 @@ function onHubMessage(message, secondTry, messageHistory) {
 }
 
 function onUpdateName(newName) {
+  socket.emit("clientUsername", {id: socket.id, username: newName});
   config.username = newName;
   saveConfig();
 }
@@ -53,10 +54,15 @@ function render(messageHistory) {
   messageHistory.forEach((message) => console.log(message));
 }
 
+function sendUsername() {
+  socket.emit("clientUsername", {id: socket.id, username: config.username});
+}
+
 async function start() {
   // hooking signals
   socket.on("hubMessage", onHubMessage);
   socket.on("updateName", onUpdateName);
+  socket.once("gatherUsername", sendUsername)
 
   // inquirer loop
   while (true) {
