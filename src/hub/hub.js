@@ -27,10 +27,6 @@ class MessageHistory {
 const messageHistory = new MessageHistory(5);
 
 function onClientMessage(messageObj) {
-  if (!getClientByID(messageObj.id)) {
-    cullClients();
-    return;
-  }
   //we got your message
   emitToId(messageObj.id, "messageReceived");
   if (commandCheck(messageObj)) {

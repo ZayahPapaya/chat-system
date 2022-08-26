@@ -78,7 +78,7 @@ async function start() {
 
   // inquirer loop
   let shouldRestart = false;
-  while (shouldRestart) {
+  while (!shouldRestart) {
     const question = {
       type: "rejInput",
       name: "content",
