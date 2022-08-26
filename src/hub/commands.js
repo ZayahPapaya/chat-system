@@ -1,5 +1,6 @@
 import { chatToId, chatToOthers, emitToId } from "./emit.js";
 import { hubData } from './hub.js';
+import { cullClients } from '../helpers.js';
 
 class Command {
   // this is fine to do as long as the base Command type isn't added to the AllCommands list
@@ -59,6 +60,7 @@ class WhoCommand extends Command {
   desc = "Lists all the connected users.";
 
   commandEffect(messageData, ...args) {
+    cullClients();
     const userList = hubData.clients;
     const built = [];
     built.push("-- All Users --");
