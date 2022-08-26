@@ -9,28 +9,29 @@ const chance = Chance();
 
 const configPath = "./config.json";
 let config = {};
+//"https://pog-chat.herokuapp.com/"
+const socket = io("ws://localhost:3500");
 
-const socket = io('https://pog-chat.herokuapp.com/');
-
-let promiseReject = null;
+let promiseResolve = null;
+let interruptedInput = null;
 const InputPrompt = inquirer.prompt.prompts["input"];
 let priorityMessage;
 let mostRecentHistory = [];
 
-export class RejectablePrompt extends InputPrompt {
+export class ResolvablePrompt extends InputPrompt {
   run(callback) {
     return new Promise((resolve, reject) => {
-      promiseReject = reject;
+      promiseResolve = resolve;
       super.run(callback).then(resolve, reject);
     });
   }
 }
 
-inquirer.registerPrompt("rejInput", RejectablePrompt);
+inquirer.registerPrompt("resInput", ResolvablePrompt);
 
 function onHubMessage(message, secondTry, messageHistory) {
-  if (promiseReject && !secondTry) {
-    promiseReject({
+  if (promiseResolve && !secondTry) {
+    interruptedInput = promiseResolve({
       name: "newHubMessage",
       waitingMessage: message,
       messageHistory: messageHistory,
@@ -45,7 +46,7 @@ function onHubMessage(message, secondTry, messageHistory) {
 }
 
 function onUpdateName(newName) {
-  socket.emit("clientUsername", {id: socket.id, username: newName});
+  socket.emit("clientUsername", { id: socket.id, username: newName });
   config.username = newName;
   saveConfig();
 }
@@ -61,21 +62,28 @@ function render() {
 }
 
 function sendUsername() {
-  socket.emit("clientUsername", {id: socket.id, username: config.username});
+  socket.emit("clientUsername", { id: socket.id, username: config.username });
+}
+
+function onTryFix() {
+  render();
 }
 
 async function start() {
   // hooking signals
   socket.on("hubMessage", onHubMessage);
+  socket.on("tryFix", onTryFix);
   socket.on("updateName", onUpdateName);
-  socket.once("gatherUsername", sendUsername)
+  socket.once("gatherUsername", sendUsername);
 
   // inquirer loop
-  while (true) {
+  let shouldRestart = false;
+  while (shouldRestart) {
     const question = {
       type: "rejInput",
       name: "content",
       message: config.username + ":",
+      default: interruptedInput,
     };
     let promptPromise = inquirer.prompt(question);
     let response;
@@ -100,12 +108,12 @@ async function start() {
     };
     socket.emit("clientMessage", userMessage);
     priorityMessage = null;
+    interruptedInput = null;
     mostRecentHistory.push(parseMessage(userMessage));
     render();
-    let shouldRestart = false;
     await new Promise((resolve, reject) => {
       if (socket.disconnected) {
-        reject("server died");
+        reject();
       }
       socket.once("messageReceived", () => {
         resolve();
@@ -114,12 +122,9 @@ async function start() {
       (_) => {},
       (_) => (shouldRestart = true)
     );
-    if (shouldRestart) {
-      console.log("Lost connection to server, trying to reconnect...");
-      prestart();
-      return;
-    }
   }
+  console.log("Lost connection to server, trying to reconnect...");
+  prestart();
 }
 
 function loadConfig() {
@@ -172,8 +177,7 @@ function prestart() {
   }
   configSpinner.success({ text: result });
   const serverSpinner = createSpinner("waiting for server...").start();
-  console.log(process.env.SERVER)
-  socket.on("connect", () => {
+  socket.once("connect", () => {
     serverSpinner.success({ text: "connected to server!" });
     start();
   });

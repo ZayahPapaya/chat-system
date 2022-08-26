@@ -1,10 +1,10 @@
 import { Server } from "socket.io";
-import { chatToOthers, emitToId, emitToOthers } from "./emit.js";
+import { chatToOthers, cullClients, emitToId, emitToOthers } from "./emit.js";
 import { allCommands } from "./commands.js";
 import { parseMessage } from "../helpers.js";
 const io = new Server();
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 io.listen(process.env.PORT || 3500);
 
 /// tracks all of the connected clients
@@ -27,6 +27,10 @@ class MessageHistory {
 const messageHistory = new MessageHistory(5);
 
 function onClientMessage(messageObj) {
+  if (!getClientByID(messageObj.id)) {
+    cullClients();
+    return;
+  }
   //we got your message
   emitToId(messageObj.id, "messageReceived");
   if (commandCheck(messageObj)) {

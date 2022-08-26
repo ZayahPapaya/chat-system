@@ -1,5 +1,5 @@
 import { chatToId, chatToOthers, emitToId, cullClients } from "./emit.js";
-import { hubData } from './hub.js';
+import { hubData } from "./hub.js";
 
 class Command {
   // this is fine to do as long as the base Command type isn't added to the AllCommands list
@@ -70,4 +70,13 @@ class WhoCommand extends Command {
   }
 }
 
-export const allCommands = [new HelpCommand(), new NickCommand(), new WhoCommand()];
+class FixCommand extends Command {
+  name = "fix";
+  desc = "Attempts to fix your screen.";
+
+  commandEffect(messageData, ...args) {
+    emitToId(messageData.id, "tryFix");
+  }
+}
+
+export const allCommands = [new HelpCommand(), new NickCommand(), new WhoCommand(), new FixCommand()];
