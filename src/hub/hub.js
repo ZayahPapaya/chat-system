@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
-import { emitToId, emitToOthers } from "./emit.js";
+import { chatToOthers, emitToId, emitToOthers } from "./emit.js";
 import { allCommands } from "./commands.js";
+import { parseMessage } from "../helpers.js";
 const io = new Server();
 io.listen(3500);
 
@@ -24,12 +25,17 @@ class MessageHistory {
 const messageHistory = new MessageHistory(5);
 
 function onClientMessage(messageObj) {
+  //we got your message
+  emitToId(messageObj.id, "messageReceived");
   if (commandCheck(messageObj)) {
     return;
   }
   const parsedMessage = parseMessage(messageObj);
-  emitToOthers(messageObj.id, "hubMessage", parsedMessage, false, messageHistory.history);
   messageHistory.addToHistory(parsedMessage);
+  //we DON'T send a message because it's in the messageHistory.
+  //message is only for personal user feedback like commands and errors
+  chatToOthers();
+  emitToOthers(messageObj.id, "hubMessage", null, false, messageHistory.history);
 }
 
 function commandCheck(messageObj) {
@@ -54,11 +60,6 @@ function commandCheck(messageObj) {
     emitToId(messageObj.id, "hubMessage", error, false, messageHistory.history);
   }
   return true;
-}
-
-function parseMessage(messageObj) {
-  const { name, content, timestamp } = messageObj;
-  return `${name} at ${timestamp}: ${content}`;
 }
 
 function start() {

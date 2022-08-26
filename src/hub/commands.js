@@ -22,7 +22,7 @@ class HelpCommand extends Command {
     for (const command of allCommands) {
       built.push(`${command.name} - ${command.desc}`);
       for (const arg in command.argDesc) {
-        built.push(` * ${arg} - ${command.argDesc[arg]}`);
+        built.push(` ● ${arg} - ${command.argDesc[arg]}`);
       }
     }
     chatToId(messageData.id, built.join("\n"));
