@@ -1,10 +1,10 @@
 import { Server } from "socket.io";
-import { chatToOthers, emitToId, emitToOthers } from "./emit.js";
+import { chatToOthers, emitToId, emitToOthers, cullClients } from "./emit.js";
 import { allCommands } from "./commands.js";
 import { parseMessage } from "../helpers.js";
 const io = new Server();
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 io.listen(process.env.PORT || 3500);
 
 /// tracks all of the connected clients
@@ -27,13 +27,20 @@ class MessageHistory {
 const messageHistory = new MessageHistory(5);
 
 function onClientMessage(messageObj) {
-  //we got your message
-  emitToId(messageObj.id, "messageReceived");
+  //filter disconnected weirdness
+  if (!getClientByID(messageObj.id)) {
+    cullClients();
+    return;
+  }
   if (commandCheck(messageObj)) {
+    // no message added but the client still needs to recieve some feedback of some kind
+    emitToId(messageObj.id, "messageReceived", messageHistory.history);
     return;
   }
   const parsedMessage = parseMessage(messageObj);
   messageHistory.addToHistory(parsedMessage);
+  //message handled by server
+  emitToId(messageObj.id, "messageReceived", messageHistory.history);
   //we DON'T send a message because it's in the messageHistory.
   //message is only for personal user feedback like commands and errors
   emitToOthers(messageObj.id, "hubMessage", null, false, messageHistory.history);
