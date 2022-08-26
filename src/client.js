@@ -14,6 +14,7 @@ const socket = io("ws://localhost:3500");
 
 let promiseReject = null;
 const InputPrompt = inquirer.prompt.prompts["input"];
+let priorityMessage;
 
 export class RejectablePrompt extends InputPrompt {
   run(callback) {
@@ -51,6 +52,9 @@ function render(messageHistory) {
   //repost message history
   // console.log(messageHistory.join("\n"));
   messageHistory.forEach((message) => console.log(message));
+  if (priorityMessage) {
+    console.log(priorityMessage);
+  }
 }
 
 async function start() {
@@ -87,6 +91,7 @@ async function start() {
       timestamp: timestamp(),
     };
     socket.emit("clientMessage", userMessage);
+    priorityMessage = null;
   }
 }
 
@@ -115,7 +120,7 @@ function loadConfig() {
     //- admin stuff ^ stretch of above
     //- who command
   };
-  saveConfig();
+  return saveConfig();
 }
 
 function saveConfig() {
