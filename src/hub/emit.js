@@ -43,3 +43,12 @@ export function chatToOthers(ignoredId, message) {
     client.emit("hubMessage", message, false, hubData.messageHistory.history);
   }
 }
+
+export function cullClients() {
+  const clients = hubData.clients;
+  clients.forEach(client => {
+    if(client.disconnected){
+      clients.splice(clients.indexOf(client), 1);
+    }
+  });
+}
