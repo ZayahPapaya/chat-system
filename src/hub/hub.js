@@ -34,7 +34,6 @@ function onClientMessage(messageObj) {
   messageHistory.addToHistory(parsedMessage);
   //we DON'T send a message because it's in the messageHistory.
   //message is only for personal user feedback like commands and errors
-  chatToOthers();
   emitToOthers(messageObj.id, "hubMessage", null, false, messageHistory.history);
 }
 
