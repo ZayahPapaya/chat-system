@@ -1,4 +1,5 @@
 import { chatToId, chatToOthers, emitToId } from "./emit.js";
+import { hubData } from './hub.js';
 
 class Command {
   // this is fine to do as long as the base Command type isn't added to the AllCommands list
@@ -53,4 +54,19 @@ class NickCommand extends Command {
   }
 }
 
-export const allCommands = [new HelpCommand(), new NickCommand()];
+class WhoCommand extends Command {
+  name = "who";
+  desc = "Lists all the connected users.";
+
+  commandEffect(messageData, ...args) {
+    const userList = hubData.clients;
+    const built = [];
+    built.push("-- All Users --");
+    for (const user of userList) {
+      built.push(` ● ${user.username}`);
+    }
+    chatToId(messageData.id, built.join("\n"));
+  }
+}
+
+export const allCommands = [new HelpCommand(), new NickCommand(), new WhoCommand()];

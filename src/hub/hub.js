@@ -62,8 +62,29 @@ function commandCheck(messageObj) {
   return true;
 }
 
+function parseMessage(messageObj) {
+  const { name, content, timestamp } = messageObj;
+  return `${name} at ${timestamp}: ${content}`;
+}
+
+function getClientByID(id) {
+  let output;
+  allClients.forEach(client => {
+    client.id === id ? output = client : null;
+  });
+  return output;
+}
+
+function gatherUsername(messageObj) {
+  let client = getClientByID(messageObj.id);
+  if (!client) { return };
+  client.username = messageObj.username;
+}
+
 function start() {
   io.on("connection", (client) => {
+    client.on("clientUsername", gatherUsername);
+    client.emit("gatherUsername");
     allClients.push(client);
     client.on("clientMessage", onClientMessage);
   });
