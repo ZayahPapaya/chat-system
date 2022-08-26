@@ -1,5 +1,5 @@
 import { chatToId, chatToOthers, emitToId, cullClients } from "./emit.js";
-import { hubData } from './hub.js';
+import { hubData } from "./hub.js";
 
 class Command {
   // this is fine to do as long as the base Command type isn't added to the AllCommands list
@@ -47,7 +47,7 @@ class NickCommand extends Command {
       chatToId(messageData.id, "Max name length is 20.");
       return;
     }
-    const oldName = messageData.username;
+    const oldName = messageData.name;
     emitToId(messageData.id, "updateName", newName);
     chatToId(messageData.id, `Set name as ${newName}.`);
     chatToOthers(messageData.id, `${oldName} is now known as ${newName}`);
