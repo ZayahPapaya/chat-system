@@ -3,7 +3,7 @@ import { chatToOthers, emitToId, emitToOthers } from "./emit.js";
 import { allCommands } from "./commands.js";
 import { parseMessage } from "../helpers.js";
 const io = new Server();
-io.listen(3500);
+io.listen(process.env.PORT || 3001);
 
 /// tracks all of the connected clients
 const allClients = [];

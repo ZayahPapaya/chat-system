@@ -10,7 +10,7 @@ const chance = Chance();
 const configPath = "./config.json";
 let config = {};
 
-const socket = io("ws://localhost:3500");
+const socket = io(`${process.env.SERVER}`|| 'ws://localhost:3500');
 
 let promiseReject = null;
 const InputPrompt = inquirer.prompt.prompts["input"];
