@@ -23,7 +23,7 @@ class MessageHistory {
   }
 }
 
-const messageHistory = new MessageHistory(5);
+const messageHistory = new MessageHistory(100);
 
 function onClientMessage(messageObj) {
   //filter disconnected weirdness
