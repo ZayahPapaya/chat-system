@@ -6,6 +6,12 @@ import dotenv from "dotenv";
 dotenv.config();
 io.listen(process.env.PORT || 3500);
 
+// try {
+//   io.listen(80);
+// } catch(error) {
+//   console.log("Failed the vibe check:", error);
+// }
+
 /// tracks all of the connected clients
 const allClients = [];
 
