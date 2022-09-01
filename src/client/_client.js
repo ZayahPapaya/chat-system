@@ -10,7 +10,7 @@ const chance = Chance();
 const configPath = "./config.json";
 let config = {};
 
-let connectionString = process.argv[3] === "local" ? "ws://localhost:3500" : "https://pog-chat.herokuapp.com/";
+let connectionString = process.argv[3] === "local" ? "ws://localhost:3500" : "http://pogchat-env.eba-nn9tgy6w.us-east-1.elasticbeanstalk.com/";
 const socket = io(connectionString);
 
 let promiseResolve = null;
