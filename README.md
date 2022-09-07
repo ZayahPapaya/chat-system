@@ -25,3 +25,9 @@ This is an in-console chat app that connects to a live heroku server. The repo c
 - OTHERS:
 - Stackoverflow
 - MDN Docs
+
+## AWS Deployment
+
+<http://pogchat-env.eba-nn9tgy6w.us-east-1.elasticbeanstalk.com/>
+
+![aws](cloud.png)
